@@ -129,6 +129,30 @@ def measureBleuScore(sen1, sen2):
     score = sentence_bleu(s1, s2, weights=(1, 0, 0, 0))
     return score
 
+# functions for calculating Word Mover Distance
+def preprocess(sentence):
+    stop_words = set(stopwords.words('english'))
+    temp = changeNumbertoTokens(sentence)
+    res = [w for w in temp.lower().split() if w not in stop_words]
+    # temp = ' '.join(temp)
+
+    return res
+
+def measure_wmd(sen1, sen2):
+    import gensim.downloader as api
+
+    try:
+        model = pickle.load(open("model_wmd.p", "rb"))
+    except:
+        print('no model here')
+        model = api.load('word2vec-google-news-300')
+        pickle.dump(model, open("model_wmd.p", "wb"))
+
+    model.init_sims(replace=True)  # Normalizes the vectors in the word2vec class.
+    sen1 = preprocess(sen1)
+    sen2 = preprocess(sen2)
+
+    return model.wmdistance(sen1, sen2)
 
 if __name__ == "__main__":
     print('Reading files...')
