@@ -3,6 +3,7 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 import csv
 import nltk
+from nltk.translate.bleu_score import sentence_bleu
 
 # nltk.download('stopwords')
 # nltk.download('punkt')
@@ -109,6 +110,25 @@ def measureCosineSimilarity(sen1, sen2):
     # print("similarity: ", cosine)
     return cosine
 
+def measureBleuScore(sen1, sen2):
+    s1 = sen1
+    s2 = sen2
+    # remove stop words
+    s1 = removeStopWords(s1)
+    s2 = removeStopWords(s2)
+
+    # Change numbers to token
+    s1 = changeNumbertoTokens(s1)
+    s2 = changeNumbertoTokens(s2)
+
+    # change to list
+    s1 = s1.split()
+    s2 = s2.split()
+
+    #calculate score
+    score = sentence_bleu(s1, s2, weights=(1, 0, 0, 0))
+    return score
+
 
 if __name__ == "__main__":
     print('Reading files...')
@@ -133,13 +153,23 @@ if __name__ == "__main__":
     num_samples = len(allInputs)
     cossim_list1 = []
     cossim_list2 = []
+    bleu_list1 = []
+    bleu_list2 = []
 
     for i in range(num_samples):
-      cossim1 = measureCosineSimilarity(allInputs[i], allAlexaResponses[i])
-      cossim_list1.append(cossim1)
+        #calculate BLEU Score and append int a list
+        bleu1 = measureBleuScore(allInputs[i], allAlexaResponses[i])
+        bleu_list1.append(bleu1)
 
-      cossim2 = measureCosineSimilarity(allInputs[i], allHumanResponses[i])
-      cossim_list2.append(cossim2)
+        bleu2 = measureBleuScore(allInputs[i], allHumanResponses[i])
+        bleu_list2.append(bleu2)
+
+      # cossim1 = measureCosineSimilarity(allInputs[i], allAlexaResponses[i])
+      # cossim_list1.append(cossim1)
+      #
+      # cossim2 = measureCosineSimilarity(allInputs[i], allHumanResponses[i])
+      # cossim_list2.append(cossim2)
+
 
       # if (abs(cossim1-cossim2) < 0.01) & (cossim1 != 0.0):
       #     print(cossim1, cossim2)
@@ -147,13 +177,22 @@ if __name__ == "__main__":
       #     print(allAlexaResponses[i])
       #     print(allHumanResponses[i])
 
-    if (len(cossim_list1) !=len(cossim_list2)):
+    # if (len(cossim_list1) !=len(cossim_list2)):
+    #     print("Two results are not same!")
+    #
+    # with open('result.csv', 'w', newline='') as file:
+    #   writer = csv.writer(file)
+    #   writer.writerow(['HumanResponseCosineSimilarity', 'AlexaResponseCosineSimilarity'])
+    #   for i in range(len(cossim_list1)):
+    #       writer.writerow([cossim_list1[i], cossim_list2[i]])
+
+    if (len(bleu_list1) !=len(bleu_list2)):
         print("Two results are not same!")
 
-    with open('result.csv', 'w', newline='') as file:
+    with open('result2.csv', 'w', newline='') as file:
       writer = csv.writer(file)
-      writer.writerow(['HumanResponseCosineSimilarity', 'AlexaResponseCosineSimilarity'])
-      for i in range(len(cossim_list1)):
-          writer.writerow([cossim_list1[i], cossim_list2[i]])
+      writer.writerow(['HumanResponseBleuScore', 'AlexaResponseBleuScore'])
+      for i in range(len(bleu_list1)):
+          writer.writerow([bleu_list2[i], bleu_list1[i]])
 
     print('Program is done successfully!')
